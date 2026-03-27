@@ -100,7 +100,7 @@ vim.g.have_nerd_font = true
 vim.wo.relativenumber = true
 vim.keymap.set('n', '<C-Up>', ':resize +2<CR>', { desc = 'Increase height' })
 vim.keymap.set('n', '<C-Down>', ':resize -2<CR>', { desc = 'Decrease height' })
-vim.keymap.set('t', 'jk', [[<C-\><C-n>]], { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<C-J>', [[<C-\><C-n>]], { desc = 'Exit terminal mode' })
 vim.o.termguicolors = true
 vim.o.tabstop = 4
 -- [[ Setting options ]]
@@ -121,6 +121,9 @@ vim.o.mouse = 'a'
 vim.keymap.set('n', '<C-j>', ':m .+1<CR>==', { desc = 'Move line down' })
 vim.keymap.set('n', '<C-k>', ':m .-2<CR>==', { desc = 'Move line up' })
 vim.o.shiftwidth = 4
+vim.keymap.set('n', '<C-y>', '<C-k>')
+
+vim.opt.guicursor = 'n-v-c-i:block'
 
 vim.keymap.set('n', '<Tab>', '<Nop>', { noremap = true })
 vim.keymap.set('i', '<Tab>', '<Tab>', { noremap = true })
@@ -216,8 +219,8 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<C-j>', '<c-w><c-j>', { desc = 'move focus to the lower window' })
 vim.keymap.set('i', 'jk', '<Esc>')
 
 -- Navigation between hunks (changes)
@@ -425,14 +428,14 @@ require('lazy').setup({
   --   ft = 'asm',
   --   lazy = true,
   -- },
+  --
   {
-    'supermaven-inc/supermaven-nvim',
+    'monkoose/neocodeium',
+    event = 'VeryLazy',
+    opts = {},
     config = function()
-      require('supermaven-nvim').setup {
-        keymaps = {
-          accept_suggestion = nil, -- Handled by blink.cmp
-        },
-        ignore_filetypes = { 'bigfile', 'snacks_input', 'snacks_notif' },
+      require('neocodeium').setup {
+        enabled = false,
       }
     end,
   },
@@ -441,7 +444,6 @@ require('lazy').setup({
     event = 'vimenter',
     version = '1.*',
     dependencies = {
-      --     -- snippet engine
       {
         'l3mon4d3/luasnip',
         version = '2.*',
@@ -451,69 +453,66 @@ require('lazy').setup({
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {},
-        opts = {},
       },
       'folke/lazydev.nvim',
       'saghen/blink.compat',
     },
     opts = {
+      -- 1. KEYMAPS (Only key definitions go here)
       keymap = {
-        ['<CR>'] = { 'accept', 'fallback' },
+        preset = 'default',
         ['<Tab>'] = {
           function(cmp)
-            local success, sm = pcall(require, 'supermaven-nvim.completion_preview')
-            if success and sm.has_suggestion() then
-              -- SCHEDULE the insertion to happen after the current callback
-              vim.schedule(function()
-                sm.on_accept_suggestion()
-              end)
-              return true -- Tell blink we handled it
+            -- 1. If blink menu is open, go to next item
+            if cmp.is_menu_visible() then
+              return cmp.select_next()
             end
-          end,
-          'select_next',
-          'fallback',
-        },
-        preset = 'default',
-      },
 
+            -- 2. Check NeoCodeium
+            local neocodeium = require 'neocodeium'
+            if neocodeium.visible() then
+              neocodeium.accept()
+              return true -- Tells blink we handled the keypress
+            end
+
+            -- 3. If a snippet is active, jump forward
+          end,
+          'fallback', -- Default tab behavior if none of the above match
+        },
+        ['<CR>'] = { 'accept', 'fallback' },
+      },
+      -- 2. APPEARANCE (Top-level, not inside keymap)
       appearance = {
         nerd_font_variant = 'mono',
       },
 
+      -- 3. COMPLETION (This is where your documentation fix lives!)
       completion = {
-        documentation = { auto_show = true, auto_show_delay_ms = 500 },
-        list = { selection = { preselect = false, auto_insert = true } },
-        menu = { draw = { treesitter = { 'lsp' } } },
-        ghost_text = { enabled = true },
-      },
-
-      sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer', 'supermaven' },
-        providers = {
-          lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
-          supermaven = {
-            kind = 'Supermaven',
-            score_offset = 100, -- Prioritize AI suggestions
-            async = true,
-            module = 'blink.compat.source',
-          },
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 500,
+        },
+        list = { selection = { preselect = true, auto_insert = true } },
+        menu = {
+          draw = { treesitter = { 'lsp' } },
+          -- Note: Usually auto_show is a boolean, but if using a function,
+          -- ensure it returns true when you want the menu to appear.
         },
       },
 
+      -- 4. SOURCES
+      sources = {
+        default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer' },
+        providers = {
+          lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
+        },
+      },
+
+      -- 5. SNIPPETS
       snippets = { preset = 'luasnip' },
 
-      -- blink.cmp includes an optional, recommended rust fuzzy matcher,
-      -- which automatically downloads a prebuilt binary when enabled.
-      --
-      -- by default, we use the lua implementation instead, but you may enable
-      -- the rust implementation via 'prefer_rust_with_warning'
-      --
-      -- see :h blink-cmp-config-fuzzy for more information
-      -- fuzzy = { implementation = 'lua' },
-
-      -- shows a signature help window while you type arguments for a function
-      --   signature = { enabled = true },
+      -- 6. SIGNATURE (Optional, but useful)
+      signature = { enabled = true },
     },
   },
   -- {
@@ -556,6 +555,61 @@ require('lazy').setup({
   --   end,
   -- },
   {
+    'NickvanDyke/opencode.nvim',
+    dependencies = {
+      -- Recommended for `ask()` and `select()`.
+      -- Required for `snacks` provider.
+      ---@module 'snacks' <- Loads `snacks.nvim` types for configuration intellisense.
+      { 'folke/snacks.nvim', opts = { input = {}, picker = {}, terminal = {} } },
+    },
+    config = function()
+      ---@type opencode.Opts
+      vim.g.opencode_opts = {
+        -- Your configuration, if any — see `lua/opencode/config.lua`, or "goto definition" on the type or field.
+        server_url = 'http://127.0.0.1:39047',
+        provider = {
+          enabled = 'tmux',
+          tmux = {
+            -- This override tells tmux to create a new window instead of a split pane
+            command = 'tmux new-window -n opencode',
+          },
+        },
+      }
+
+      -- Required for `opts.events.reload`.
+      vim.o.autoread = true
+
+      -- Recommended/example keymaps.
+      vim.keymap.set({ 'n', 'x' }, '<C-a>', function()
+        require('opencode').ask('@this: ', { submit = true })
+      end, { desc = 'Ask opencode…' })
+      vim.keymap.set({ 'n', 'x' }, '<C-x>', function()
+        require('opencode').select()
+      end, { desc = 'Execute opencode action…' })
+      vim.keymap.set({ 'n', 't' }, '<C-.>', function()
+        require('opencode').toggle()
+      end, { desc = 'Toggle opencode' })
+
+      vim.keymap.set({ 'n', 'x' }, 'go', function()
+        return require('opencode').operator '@this '
+      end, { desc = 'Add range to opencode', expr = true })
+      vim.keymap.set('n', 'goo', function()
+        return require('opencode').operator '@this ' .. '_'
+      end, { desc = 'Add line to opencode', expr = true })
+
+      vim.keymap.set('n', '<S-C-u>', function()
+        require('opencode').command 'session.half.page.up'
+      end, { desc = 'Scroll opencode up' })
+      vim.keymap.set('n', '<S-C-d>', function()
+        require('opencode').command 'session.half.page.down'
+      end, { desc = 'Scroll opencode down' })
+
+      -- You may want these if you stick with the opinionated "<C-a>" and "<C-x>" above — otherwise consider "<leader>o…".
+      vim.keymap.set('n', '+', '<C-a>', { desc = 'Increment under cursor', noremap = true })
+      vim.keymap.set('n', '-', '<C-x>', { desc = 'Decrement under cursor', noremap = true })
+    end,
+  },
+  {
     'akinsho/toggleterm.nvim',
     version = '*',
     config = function()
@@ -568,7 +622,7 @@ require('lazy').setup({
 
       -- keymaps
       local keymap = vim.keymap.set
-      keymap('n', '<leader>t', '<cmd>toggleterm<cr>', { desc = 'toggle terminal' })
+      keymap('n', '<leader>t', '<cmd>ToggleTerm<cr>', { desc = 'toggle terminal' })
 
       -- run current file
       keymap('n', '<leader>pr', function()
@@ -584,11 +638,13 @@ require('lazy').setup({
           cmd = 'g++ ' .. vim.fn.expand '%' .. ' -o /tmp/a.out && /tmp/a.out'
         elseif ft == 'asm' then
           cmd = 'make run'
+        elseif ft == 'go' then
+          cmd = 'go run ./...'
         else
-          cmd = ft .. '%'
+          cmd = ft .. ' %'
         end
-        vim.cmd 'toggleterm' -- open terminal
-        vim.cmd("termexec cmd='" .. cmd .. "'") -- run command
+        vim.cmd 'ToggleTerm' -- open terminal
+        vim.cmd("TermExec cmd='" .. cmd .. "'") -- run command
       end, { desc = 'run current file' })
     end,
   },
@@ -596,7 +652,7 @@ require('lazy').setup({
   {
     'szw/vim-maximizer',
     config = function()
-      vim.keymap.set('n', '<leader>m', ':maximizertoggle<cr>', { desc = 'maximize/restore split' })
+      vim.keymap.set('n', '<leader>m', ':MaximizerToggle<cr>', { desc = 'maximize/restore split' })
     end,
   },
 
@@ -897,7 +953,7 @@ require('lazy').setup({
       vim.diagnostic.config {
         severity_sort = true,
         float = { border = 'rounded', source = 'if_many' },
-        underline = { severity = vim.diagnostic.severity.error },
+        underline = { severity = vim.diagnostic.severity.ERROR },
         signs = vim.g.have_nerd_font and {
           text = {
             [vim.diagnostic.severity.ERROR] = '󰅚 ',
@@ -911,7 +967,7 @@ require('lazy').setup({
           spacing = 2,
           format = function(diagnostic)
             local diagnostic_message = {
-              [vim.diagnostic.severity.ERROR] = diagnostic.mESSAGE,
+              [vim.diagnostic.severity.ERROR] = diagnostic.message,
               [vim.diagnostic.severity.WARN] = diagnostic.message,
               [vim.diagnostic.severity.INFO] = diagnostic.message,
               [vim.diagnostic.severity.HINT] = diagnostic.message,
@@ -938,17 +994,17 @@ require('lazy').setup({
       --        for example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        -- gopls = {},
-        -- basedpyright = {
-        --   settings = {
-        --     python = {
-        --       analysis = {
-        --         typecheckingmode = 'basic',
-        --         autosearchpaths = true,
-        --       },
-        --     },
-        --   },
-        -- },
+        gopls = {},
+        basedpyright = {
+          settings = {
+            python = {
+              analysis = {
+                typecheckingmode = 'basic',
+                autosearchpaths = true,
+              },
+            },
+          },
+        },
         jedi_language_server = {},
         ruff = {},
         pyrefly = {},
@@ -1002,7 +1058,7 @@ require('lazy').setup({
 
       require('mason-lspconfig').setup {
         ensure_installed = { require('mason-lspconfig').setup {
-          ensure_installed = { 'asm_lsp' },
+          ensure_installed = { 'asm_lsp', 'jdtls' },
         } }, -- explicitly set to an empty table (kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
         handlers = {
@@ -1016,6 +1072,27 @@ require('lazy').setup({
           end,
         },
       }
+    end,
+  },
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    ---@module "ibl"
+    ---@type ibl.config
+    opts = {},
+    config = function()
+      require('ibl').setup()
     end,
   },
 
@@ -1061,17 +1138,6 @@ require('lazy').setup({
   },
 
   {
-    'nvim-tree/nvim-tree.lua',
-    version = '*',
-    lazy = false,
-    dependencies = {
-      'nvim-tree/nvim-web-devicons',
-    },
-    config = function()
-      require('nvim-tree').setup {}
-    end,
-  },
-  {
     'windwp/nvim-autopairs',
     event = 'insertenter',
     config = true,
@@ -1081,11 +1147,9 @@ require('lazy').setup({
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
       require('nightfox').setup {}
-      -- enable theme
       require('nightfox').load()
     end,
   },
-
   -- highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'vimenter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -1127,7 +1191,7 @@ require('lazy').setup({
   -- stylua: ignore
   keys = {
     { "<leader>s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "flash" },
-    { "<leader>s", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "flash treesitter" },
+    -- { "<leader>s", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "flash treesitter" },
     { "r", mode = "o", function() require("flash").remote() end, desc = "remote flash" },
     { "r", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "treesitter search" },
     { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "toggle flash search" },
