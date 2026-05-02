@@ -640,6 +640,8 @@ require('lazy').setup({
           cmd = 'make run'
         elseif ft == 'go' then
           cmd = 'go run ./...'
+        elseif ft == 'rust' then
+          cmd = 'cargo run'
         else
           cmd = ft .. ' %'
         end
@@ -995,20 +997,20 @@ require('lazy').setup({
       local servers = {
         clangd = {},
         gopls = {},
-        basedpyright = {
-          settings = {
-            python = {
-              analysis = {
-                typecheckingmode = 'basic',
-                autosearchpaths = true,
-              },
-            },
-          },
-        },
+        -- basedpyright = {
+        --   settings = {
+        --     python = {
+        --       analysis = {
+        --         typecheckingmode = 'basic',
+        --         autosearchpaths = true,
+        --       },
+        --     },
+        --   },
+        -- },
         jedi_language_server = {},
         ruff = {},
         pyrefly = {},
-        -- rust_analyzer = {},
+        rust_analyzer = {},
         -- ... etc. see `:help lspconfig-all` for a list of all the pre-configured lsps
         --
         -- some languages (like typescript) have entire language plugins that can be useful:
