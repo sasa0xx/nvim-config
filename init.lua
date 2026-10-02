@@ -175,6 +175,37 @@ vim.o.timeoutlen = 500
 vim.o.splitright = true
 vim.o.splitbelow = true
 
+vim.keymap.set('i', '<CR>', function()
+  if vim.bo.filetype ~= 'html' then
+    return '<CR>'
+  end
+
+  local line = vim.api.nvim_get_current_line()
+
+  if line:match '^%s*!$' then
+    local indent = line:match '^(%s*)'
+    local lines = {
+      indent .. '<!DOCTYPE html>',
+      indent .. '<html lang="en">',
+      indent .. '<head>',
+      indent .. '    <meta charset="UTF-8">',
+      indent .. '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      indent .. '    <title></title>',
+      indent .. '</head>',
+      indent .. '<body>',
+      indent .. '',
+      indent .. '</body>',
+      indent .. '</html>',
+    }
+
+    vim.api.nvim_buf_set_lines(0, vim.fn.line '.' - 1, vim.fn.line '.', false, lines)
+    vim.api.nvim_win_set_cursor(0, { vim.fn.line '.' + 8, #indent })
+    return ''
+  end
+
+  return '<CR>'
+end, { expr = true })
+
 -- Sets how neovim will display certain whitespace characters in the editor.
 --  See `:help 'list'`
 --  and `:help 'listchars'`
