@@ -1,104 +1,12 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-========                                    .-----.          ========
-========         .----------------------.   | === |          ========
-========         |.-""""""""""""""""""-.|   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||   KICKSTART.NVIM   ||   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||                    ||   |-----|          ========
-========         ||:Tutor              ||   |:::::|          ========
-========         |'-..................-'|   |____o|          ========
-========         `"")----------------(""`   ___________      ========
-========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==hjkl==:::\  \ required \    ========
-========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
-========                                                     ========
-=====================================================================
-=====================================================================
-
-What is Kickstart?
-
-  Kickstart.nvim is *not* a distribution.
-
-  Kickstart.nvim is a starting point for your own configuration.
-    The goal is that you can read every line of code, top-to-bottom, understand
-    what your configuration is doing, and modify it to suit your needs.
-
-    Once you've done that, you can start exploring, configuring and tinkering to
-    make Neovim your own! That might mean leaving Kickstart just the way it is for a while
-    or immediately breaking it into modular pieces. It's up to you!
-
-    If you don't know anything about Lua, I recommend taking some time to read through
-    a guide. One possible example which will only take 10-15 minutes:
-      - https://learnxinyminutes.com/docs/lua/
-
-    After understanding a bit more about Lua, you can use `:help lua-guide` as a
-    reference for how Neovim integrates Lua.
-    - :help lua-guide
-    - (or HTML version): https://neovim.io/doc/user/lua-guide.html
-
-Kickstart Guide:
-
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
-
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know the Neovim basics, you can skip this step.)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua.
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not exactly sure of what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or Neovim features used in Kickstart.
-
-   NOTE: Look for lines like this
-
-
-    Throughout the file. These are for you, the reader, to help you understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
-    for when you are first encountering a few different constructs in your Neovim config.
-
-If you experience any errors while trying to install kickstart, run `:checkhealth` for more info.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now! :)
---]]
-
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.keymap.set('n', '\\', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
 vim.diagnostic.config {
   update_in_insert = false,
 }
-vim.keymap.set({ 'n', 'x', 'o' }, 'f', '$', { desc = 'Go to end of line' })
+vim.keymap.set({ 'n', 'x', 'o' }, 'L', '$', { desc = 'Go to end of line' })
 
--- Press '0' to go to the first non-blank character of the line (replaces ^)
 vim.keymap.set({ 'n', 'x', 'o' }, '0', '^', { desc = 'Go to start of line' })
--- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 vim.wo.relativenumber = true
 vim.keymap.set('n', '<C-Up>', ':resize +2<CR>', { desc = 'Increase height' })
@@ -106,21 +14,12 @@ vim.keymap.set('n', '<C-Down>', ':resize -2<CR>', { desc = 'Decrease height' })
 vim.keymap.set('t', '<C-J>', [[<C-\><C-n>]], { desc = 'Exit terminal mode' })
 vim.o.termguicolors = true
 vim.o.tabstop = 2
--- [[ Setting options ]]
--- See `:help vim.o`
--- NOTE: You can change these options as you wish!
---  For more options, you can see `:help option-list`
--- Make line numbers default
 vim.o.number = true
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
 
--- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
 vim.keymap.set('n', '<leader>sh', ':split<CR>', { desc = 'Horizontal split' })
 vim.keymap.set('n', '<leader>sv', ':vsplit<CR>', { desc = 'Vertical split' })
--- Normal mode
+
 vim.keymap.set('n', '<C-j>', ':m .+1<CR>==', { desc = 'Move line down' })
 vim.keymap.set('n', '<C-k>', ':m .-2<CR>==', { desc = 'Move line up' })
 vim.o.shiftwidth = 2
@@ -136,136 +35,56 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 vim.opt.guicursor = 'n-v-c-i:block'
 
-vim.keymap.set('n', '<Tab>', '<Nop>', { noremap = true })
-vim.keymap.set('i', '<Tab>', '<Tab>', { noremap = true })
+-- vim.keymap.set('n', '<Tab>', '<Nop>', { noremap = true })
+-- vim.keymap.set('i', '<Tab>', '<Tab>', { noremap = true })
 vim.g.lsp_disable_auto_ts = true
--- Visual mode
+
 vim.keymap.set('v', '<C-j>', ":m '>+1<CR>gv=gv", { desc = 'Move selection down' })
 vim.keymap.set('v', '<C-k>', ":m '<-2<CR>gv=gv", { desc = 'Move selection up' })
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
 vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
 
--- Enable break indent
 vim.o.breakindent = true
 
--- Save undo history
 vim.o.undofile = true
 
--- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.o.ignorecase = true
 vim.o.smartcase = true
--- Keep signcolumn on by default
 vim.o.signcolumn = 'yes'
 
--- Decrease update time
 vim.o.updatetime = 250
 
--- Decrease mapped sequence wait time
 vim.o.timeoutlen = 500
 
--- Configure how new splits should be opened
 vim.o.splitright = true
 vim.o.splitbelow = true
 
-vim.keymap.set('i', '<CR>', function()
-  if vim.bo.filetype ~= 'html' then
-    return '<CR>'
-  end
-
-  local line = vim.api.nvim_get_current_line()
-
-  if line:match '^%s*!$' then
-    local indent = line:match '^(%s*)'
-    local lines = {
-      indent .. '<!DOCTYPE html>',
-      indent .. '<html lang="en">',
-      indent .. '<head>',
-      indent .. '    <meta charset="UTF-8">',
-      indent .. '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-      indent .. '    <title></title>',
-      indent .. '</head>',
-      indent .. '<body>',
-      indent .. '',
-      indent .. '</body>',
-      indent .. '</html>',
-    }
-
-    vim.api.nvim_buf_set_lines(0, vim.fn.line '.' - 1, vim.fn.line '.', false, lines)
-    vim.api.nvim_win_set_cursor(0, { vim.fn.line '.' + 8, #indent })
-    return ''
-  end
-
-  return '<CR>'
-end, { expr = true })
-
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
---
---  Notice listchars is set using `vim.opt` instead of `vim.o`.
---  It is very similar to `vim.o` but offers an interface for conveniently interacting with tables.
---   See `:help lua-options`
---   and `:help lua-options-guide`
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
--- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
 
--- Show which line your cursor is on
 vim.o.cursorline = true
 
--- Minimal number of screen lines to keep above and below the cursor.
 vim.o.scrolloff = 10
 
--- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
--- instead raise a dialog asking if you wish to save the current file(s)
--- See `:help 'confirm'`
 vim.o.confirm = true
 
--- [[ Basic Keymaps ]]
---  See `:help vim.keymap.set()`
-
--- Clear highlights on search when pressing <Esc> in normal mode
---  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-
--- TIP: Disable arrow keys in normal mode
--- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 vim.keymap.set('n', '<C-j>', '<c-w><c-j>', { desc = 'move focus to the lower window' })
 vim.keymap.set('i', 'jk', '<Esc>')
 
--- Navigation between hunks (changes)
 vim.keymap.set('n', ']c', function()
   if vim.wo.diff then
     return ']c'
@@ -464,9 +283,13 @@ require('lazy').setup({
   {
     'windwp/nvim-ts-autotag',
     event = { 'BufReadPre', 'BufNewFile' },
-    config = function()
-      require('nvim-ts-autotag').setup()
-    end,
+    opts = {
+      opts = {
+        enable_close = true,
+        enable_rename = true,
+        enable_close_on_slash = true,
+      },
+    },
   },
   -- {
   --   'Who5673/who5673-nasm',
@@ -488,13 +311,54 @@ require('lazy').setup({
       }
     end,
   },
+  {
+    'L3MON4D3/LuaSnip',
+    version = 'v2.*',
+    build = 'make install_jsregexp',
+    config = function()
+      local ls = require 'luasnip'
+      local s = ls.snippet
+      local t = ls.text_node
+      local i = ls.insert_node
+
+      ls.config.setup {
+        enable_autosnippets = true,
+      }
+
+      ls.add_snippets('html', {
+        s({ trig = 'doc' }, {
+          t {
+            '<!DOCTYPE html>',
+            '<html lang="en">',
+            '<head>',
+            '  <meta charset="UTF-8">',
+            '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+            '  <title>',
+          },
+          i(1, 'Document'),
+          t {
+            '</title>',
+            '</head>',
+            '<body>',
+            '  ',
+          },
+          i(0),
+          t {
+            '',
+            '</body>',
+            '</html>',
+          },
+        }),
+      })
+    end,
+  },
   { -- autocompletion
     'saghen/blink.cmp',
-    event = 'vimenter',
+    event = 'VimEnter',
     version = '1.*',
     dependencies = {
       {
-        'l3mon4d3/luasnip',
+        'L3MON4D3/LuaSnip',
         version = '2.*',
         build = (function()
           if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
@@ -507,35 +371,35 @@ require('lazy').setup({
       'saghen/blink.compat',
     },
     opts = {
-      -- 1. KEYMAPS (Only key definitions go here)
       keymap = {
         preset = 'default',
         ['<Tab>'] = {
           function(cmp)
-            -- 1. If blink menu is open, go to next item
             if cmp.is_menu_visible() then
               return cmp.select_next()
             end
 
-            -- 2. Check NeoCodeium
-            local neocodeium = require 'neocodeium'
-            if neocodeium.visible() then
-              neocodeium.accept()
-              return true -- Tells blink we handled the keypress
+            if require('luasnip').expand_or_jumpable() then
+              require('luasnip').expand_or_jump()
+              return true
             end
-
-            -- 3. If a snippet is active, jump forward
           end,
-          'fallback', -- Default tab behavior if none of the above match
+          'fallback',
+        },
+        ['<S-Tab>'] = {
+          function()
+            if require('luasnip').jumpable(-1) then
+              require('luasnip').jump(-1)
+              return true
+            end
+          end,
+          'fallback',
         },
         ['<CR>'] = { 'accept', 'fallback' },
       },
-      -- 2. APPEARANCE (Top-level, not inside keymap)
       appearance = {
         nerd_font_variant = 'mono',
       },
-
-      -- 3. COMPLETION (This is where your documentation fix lives!)
       completion = {
         documentation = {
           auto_show = true,
@@ -544,23 +408,15 @@ require('lazy').setup({
         list = { selection = { preselect = true, auto_insert = true } },
         menu = {
           draw = { treesitter = { 'lsp' } },
-          -- Note: Usually auto_show is a boolean, but if using a function,
-          -- ensure it returns true when you want the menu to appear.
         },
       },
-
-      -- 4. SOURCES
       sources = {
         default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer' },
         providers = {
           lazydev = { name = 'LazyDev', module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },
-
-      -- 5. SNIPPETS
       snippets = { preset = 'luasnip' },
-
-      -- 6. SIGNATURE (Optional, but useful)
       signature = { enabled = true },
     },
   },
@@ -1249,11 +1105,12 @@ require('lazy').setup({
       },
     },
   },
-
   {
     'windwp/nvim-autopairs',
-    event = 'insertenter',
-    config = true,
+    event = 'InsertEnter',
+    opts = {
+      disable_filetype = { 'TelescopePrompt', 'spectre_panel' },
+    },
   },
   {
     'EdenEast/nightfox.nvim',
